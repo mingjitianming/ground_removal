@@ -4,6 +4,7 @@ project(ground_removal)
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
+set(CMAKE_BUILD_TYPE "Debug")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -11,7 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_ros
   roscpp
   sensor_msgs
+  visualization_msgs
 )
+
+find_package(PCL REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -117,6 +121,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
   include/ground_removal
+  ${PCL_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -126,8 +131,16 @@ add_library(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-              ${catkin_LIBRARIES})
+              ${catkin_LIBRARIES}
+              ${PCL_LIBRARIES})
 
+add_library(cluster
+  src/cluster.cpp
+)
+
+target_link_libraries(cluster
+              ${catkin_LIBRARIES}
+              ${PCL_LIBRARIES})
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
@@ -137,6 +150,7 @@ target_link_libraries(${PROJECT_NAME}
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/node.cpp)
+add_executable(cluster_node src/cluster_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -151,6 +165,12 @@ add_executable(${PROJECT_NAME}_node src/node.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
+)
+
+target_link_libraries(cluster_node
+  ${catkin_LIBRARIES}
+  cluster
 )
 
 #############
